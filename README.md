@@ -5,7 +5,7 @@ phonegap_real_price_map
 
 youtube 影片
 
-[![youtube 影片](http://img.youtube.com/vi/fbJ08Xq65e4/0.jpg)](http://www.youtube.com/watch?v=fbJ08Xq65e4)
+[![youtube 影片](http://img.youtube.com/vi/JbNVUfGysAA/0.jpg)](http://www.youtube.com/watch?v=JbNVUfGysAA)
 
 
 前言：因實價登入資料，目前官方不再提供查詢功能，所以這個範本是在自已的網站上建立測試資料，以供 phonegap 模擬查詢。
