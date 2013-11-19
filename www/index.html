@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/jquery.mobile-1.2.0.min.css" />
+
+    <script src="cordova.js"></script>
+    <script src="js/jquery-1.8.2.min.js"></script>
+    <script src="js/custom-scripting.js"></script>
+    <script src="js/jquery.mobile-1.2.0.min.js"></script>    
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3.ex&key=YourGoogleMapKey&sensor=true"></script>
+	<script type="text/javascript">
+
+      	var map;
+		var berkeley = new google.maps.LatLng(25.0507983448,121.54464824);
+		//var marker;
+		var markersArray = [];
+
+
+		function initialize() {
+           
+			$.mobile.allowCrossDomainPages = true;
+			document.addEventListener("touchmove", function (e) { e.preventDefault(); return false; }, false);
+		
+		  	// Set up the maps
+		  	var mapOptions = {
+				center: berkeley,
+				zoom: 16,
+				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				streetViewControl: false
+		  	};
+		  	map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);
+            
+
+			// 移動中心點
+		  	google.maps.event.addListener(map, 'idle', function(event) {
+
+				//console.log( map.getBounds() );
+				var bounds = map.getBounds();
+                                          
+                var lat_1 = bounds.getSouthWest().lat();
+                var lng_1 = bounds.getSouthWest().lng();
+                var lat_2 = bounds.getNorthEast().lat();
+                var lng_2 = bounds.getNorthEast().lng();
+
+				console.log( "lat_1(" + lat_1 + ")" );
+				console.log( "lat_2(" + lat_2 + ")" );
+				console.log( "lng_1(" + lng_1 + ")" );
+				console.log( "lng_2(" + lng_2 + ")" );
+				
+				// 清除 marker
+				if (markersArray) {
+					for (i in markersArray)	markersArray[i].setMap(null);
+				}
+							
+				console.log( "center_changed" );
+				
+                // 請改成你的 IP
+				var url = "http://localhost:8888/get_marker.php?lat_1=" + lat_1 + "&lat_2=" + lat_2 + "&lng_1=" + lng_1 + "&lng_2=" + lng_2;
+				console.log(url);
+
+				// 獲取 marker 資料
+				var data = $.getJSON( url );
+
+				//成功得到資料
+				data.success(function( data ) {
+					
+					console.log( data );
+					
+					var i = 0;
+	  
+					//這裡改用.each這個函式來取出JData裡的物件
+					$.each(data, function() {
+	
+						var single = data[i].single;
+						var icon = "https://chart.googleapis.com/chart?chst=d_map_pin_letter_withshadow&chld=";
+						
+						if( single >= 100 ) {
+							icon += "貴|000000|FFFFFF";
+						} else if( single >= 80 ) {
+							icon += single + "|A600FF|FFFFFF";
+						} else if( single >= 60 ) {
+							icon += single + "|FF00EF|FFFFFF";
+						} else if( single >= 40 ) {
+							icon += single + "|FB0007|FFFFFF";
+						} else if( single >= 20 ) {
+							icon += single + "|FDB309";
+						} else {
+							icon += single + "|0D74FF|FFFFFF";
+						}
+						console.log( "caseNo(" + data[i].caseNo + ")" );
+						console.log( "single(" + single + ")" );
+						console.log( "icon(" + icon + ")" );
+						
+						marker = new google.maps.Marker({
+							  position:  new google.maps.LatLng( data[i].lat, data[i].lng ),
+							  map: map,
+							  icon: icon
+						});
+	  					markersArray.push(marker);
+						
+						var infowindow = new google.maps.InfoWindow();
+						google.maps.event.addListener(marker, 'click', (function(marker, i ) {
+							return function() {
+
+								window.localStorage["caseNo"] = data[i].caseNo;
+								window.localStorage["lat"] = data[i].lat;
+								window.localStorage["lng"] = data[i].lng;
+								console.log("click");
+								
+								$.mobile.changePage( 
+									"detial.html", 
+									{
+										transition: "slide"
+									},
+									true,
+									true
+								);
+							}
+						})(marker, i));
+
+						i++; 
+					  });
+				  });
+
+				  //取得資料失敗
+				  data.error(function( data ) {
+					  console.log("error");
+				  });
+			});
+		}
+
+    </script>
+
+  	</head>
+
+	<body onload="initialize()">
+  	
+        <div id="map_canvas" style="width:320px; height: 480px;  background-color: rgb(229, 227, 223); overflow: hidden;"></div>
+
+	</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title></title>
+</head>
+<body>
+    <div data-role="page"  style="background:#FFFFFF;">
+        <div data-role='header' data-icon="back">
+            <h1 id=""></h1>
+        </div>
+		<span>單價：<span id="single_span"></span></span><br />
+        <span>坪數：<span id="area_span"></span></span><br />
+        <span>總價：<span id="total_span"></span></span><br />        
+        <span>地址：<span id="address_span"></span></span><br />
+
+        <div id="pano" style="width: 320px; height: 320px; background-color: rgb(229, 227, 223); overflow: hidden;"></div>
+
+		<script type="text/javascript">
+    
+            var caseNo = window.localStorage["caseNo"];
+            var lat = window.localStorage["lat"];
+            var lng = window.localStorage["lng"] ;
+            
+            console.log("caseNo(" + caseNo + ")" );
+            console.log("lat(" + lat + ")" );
+            console.log("lng(" + lng + ")" );
+
+            // 請改成你的 IP
+            var data = $.getJSON("http://localhost:8888/get_detial.php?caseNo=" + caseNo );
+
+            //成功得到資料
+            data.success(function( data ) {
+
+                console.log( data );
+				
+                var i = 0;
+
+                //這裡改用.each這個函式來取出JData裡的物件
+                $.each(data, function() {
+
+					var single = data[i].single;
+					var total = data[i].total;
+					var area = data[i].area;
+					var address = data[i].address;
+
+					$('#single_span').text( single );       //單價
+					$('#total_span').text( total );         //總價
+					$('#area_span').text( area );           //坪數
+					$('#address_span').text( address );		// 地址
+
+                    i++;
+                });
+                
+            });
+    
+            //取得資料失敗
+            data.error(function( data ) {
+                console.log("error");
+            });
+
+			// 顯示街景圖            
+            panorama = new google.maps.StreetViewPanorama(document.getElementById("pano"));
+            var sv = new google.maps.StreetViewService();
+
+			var pos = new google.maps.LatLng( lat, lng );
+            sv.getPanoramaByLocation( pos, 50, processSVData);
+    
+            function processSVData(data, status) {
+    
+                if (status == google.maps.StreetViewStatus.OK) {
+    
+                    panorama.setPano(data.location.pano);
+                    panorama.setPov({
+                        heading: 270,
+                        pitch: 0,
+                        zoom: 1
+                    });
+                    panorama.setVisible(true);
+    
+                    var markerPanoID = data.location.pano;
+                    // Set the Pano to use the passed panoID
+                    panorama.setPano(markerPanoID);
+                    panorama.setPov({
+                        heading: 270,
+                        pitch: 0,
+                        zoom: 1
+                    });
+                    panorama.setVisible(true);
+    
+                } else {
+                    alert('Street View data not found for this location.');
+                }
+             }
+
+         </script>
+	</div>
+</body>
+</html>
